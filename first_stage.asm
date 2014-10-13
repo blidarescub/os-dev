@@ -93,21 +93,21 @@ exit_loader:
 	RET
 
 Read_disk:
-	XOR AH, AH
+	XOR AH, AH ; reset drive reading head
 	INT 0x13
-    MOV BX, 0x8000  ; segment
+    MOV BX, 0x2000  ; segment
     MOV ES, BX
     MOV BX, 0x0000  ; offset
 
     MOV AH, 0x02  ; read function
-    MOV AL, 0x01  ; sectors - this might be wrong, trying to read from hd
+    MOV AL, 0x02  ; sectors 
     MOV CH, 0x00  ; cylinder
     MOV CL, 0x02  ; sector
     MOV DH, 0x00  ; head
-    MOV DL, 0x80  ; drive - trying to read from hd
+    MOV DL, 0x00  ; drive - trying to read from floppy
     INT 0x13   ; disk int
     JC Read_disk
-    JMP 0x8000:0x0000   ; buffer
+    JMP 0x2000:0x0000   ; buffer
 
 LOADING:
 	db 'LOADING BOOTLOADER', 0
