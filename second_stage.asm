@@ -1,5 +1,5 @@
 [BITS 16]
-[ORG 0x8000:0x0000]
+[ORG 0x2000:0x0000]
 
 CALL Clear_screen
 CALL Draw_rect
