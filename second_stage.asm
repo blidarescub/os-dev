@@ -1,5 +1,8 @@
 [BITS 16]
-[ORG 0x2000:0x0000]
+
+MOV AX,CS ; initialize
+MOV DS,AX ; segments
+MOV ES,AX ; correctly
 
 CALL Clear_screen
 CALL Draw_rect
