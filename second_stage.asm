@@ -1,10 +1,10 @@
-BITS 16
-ORG 0x8000:0x0000
+[BITS 16]
+[ORG 0x8000:0x0000]
 
-CALL Refresh_screen
+CALL Clear_screen
 CALL Draw_rect
 CALL Delay
-CALL Refresh_screen1
+CALL Clear_screen
 MOV SI, INTRO
 CALL PrintShell
 MOV SI, EMPTY_LINE
@@ -26,18 +26,93 @@ CALL PrintShell
 CALL Read
 
 
+Draw_rect:
+	PUSHA
+	MOV AH, 0xC
+	MOV BL, 0x32
+	MOV CX, 0x140
+	MOV DX, 0x12C
+	MOV AL, 0xE
+	Draw1:
+		CALL Delay_char
+		INT 0x10
+		DEC BL
+		DEC CX
+		DEC DX
+		CMP BL,0
+		JE Restore_var1
+		JMP Draw1
+	Restore_var1:
+		MOV BL, 0x32
+		MOV CX, 0x140
+		MOV DX, 0x12C
+		JMP Draw2
+	Draw2:
+		CALL Delay_char
+		INT 0x10
+		DEC BL
+		INC CX
+		DEC DX
+		CMP BL, 0
+		JE Restore_var2
+		JMP Draw2
+	Restore_var2:
+		MOV BL, 0x32
+		MOV CX, 0x10E
+		MOV DX, 0xFA
+		JMP Draw3
+	Draw3:
+		CALL Delay_char
+		INT 0x10
+		DEC BL
+		INC CX
+		DEC DX
+		CMP BL, 0
+		JE Restore_var3
+		JMP Draw3
+	Restore_var3:
+		MOV BL, 0x32
+		MOV CX, 0x172
+		MOV DX, 0xFA
+		JMP Draw4
+	Draw4:
+		CALL Delay_char
+		INT 0x10
+		DEC BL
+		DEC CX
+		DEC DX
+		CMP BL, 0
+		JE Exit_draw
+		JMP Draw4
+Exit_draw:
+	POPA
+	RET
+
+Clear_screen:
+	PUSHA
+	MOV AH, 0x06
+	MOV AL, 0
+	MOV BH, 0
+	MOV CX, 0
+	MOV DH, 0x1E
+	MOV DL, 0x50
+	INT 0x10
+	POPA
+	RET
+
+
 PrintChar:
 CALL Delay_char
 MOV BL, 0xA
 MOV BH, 0
-MOV AH, 0x0E
+MOV AH, 0xE
 INT 0x10
 RET
 
 PrintCharShell:
 MOV BL, 0xA
 MOV BH, 0
-MOV AH, 0x0E
+MOV AH, 0xE
 INT 0x10
 RET
 
@@ -152,84 +227,6 @@ Delay_char:
 		POPA
 		RET
 
-Draw_rect:
-	PUSHA
-	MOV AH, 0xC
-	MOV BL, 0x32
-	MOV CX, 0x140
-	MOV DX, 0x12C
-	MOV AL, 0xE
-	Draw1:
-		CALL Delay_char
-		INT 0x10
-		DEC BL
-		DEC CX
-		DEC DX
-		CMP BL,0
-		JE Restore_var1
-		JMP Draw1
-	Restore_var1:
-		MOV BL, 0x32
-		MOV CX, 0x140
-		MOV DX, 0x12C
-		JMP Draw2
-	Draw2:
-		CALL Delay_char
-		INT 0x10
-		DEC BL
-		INC CX
-		DEC DX
-		CMP BL, 0
-		JE Restore_var2
-		JMP Draw2
-	Restore_var2:
-		MOV BL, 0x32
-		MOV CX, 0x10E
-		MOV DX, 0xFA
-		JMP Draw3
-	Draw3:
-		CALL Delay_char
-		INT 0x10
-		DEC BL
-		INC CX
-		DEC DX
-		CMP BL, 0
-		JE Restore_var3
-		JMP Draw3
-	Restore_var3:
-		MOV BL, 0x32
-		MOV CX, 0x172
-		MOV DX, 0xFA
-		JMP Draw4
-	Draw4:
-		CALL Delay_char
-		INT 0x10
-		DEC BL
-		DEC CX
-		DEC DX
-		CMP BL, 0
-		JE Exit_draw
-		JMP Draw4
-Exit_draw:
-	POPA
-	RET
-
-Refresh_screen:
-	PUSHA
-	MOV AH, 0
-	MOV AL, 0x12
-	INT 0x10
-	POPA
-	RET
-
-Refresh_screen1:
-	PUSHA
-	MOV AH, 0
-	MOV AL, 0x12
-	INT 0x10
-	POPA
-	RET
-
 
 INTRO:
     db 0x40, "BLidOS 2014", 0
@@ -245,3 +242,5 @@ SHELL_PROMPT:
     db '#> ', 0
 EMPTY_LINE:
     db 0dh, 0ah, 0
+
+times 1024 -( $ - $$ ) db 0
