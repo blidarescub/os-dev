@@ -8,6 +8,7 @@ CALL Clear_screen
 CALL Draw_rect
 CALL Delay
 CALL Clear_screen
+CALL Reset_cursor
 MOV SI, INTRO
 CALL PrintShell
 MOV SI, EMPTY_LINE
@@ -103,21 +104,30 @@ Clear_screen:
 	POPA
 	RET
 
+Reset_cursor:
+	PUSHA
+	MOV AH, 0x02
+	MOV BH, 0
+	MOV DH, 0
+	MOV DL, 0
+	INT 0x10
+	POPA
+	RET
 
 PrintChar:
-CALL Delay_char
-MOV BL, 0xA
-MOV BH, 0
-MOV AH, 0xE
-INT 0x10
-RET
+	CALL Delay_char
+	MOV BL, 0xA
+	MOV BH, 0
+	MOV AH, 0xE
+	INT 0x10
+	RET
 
 PrintCharShell:
-MOV BL, 0xA
-MOV BH, 0
-MOV AH, 0xE
-INT 0x10
-RET
+	MOV BL, 0xA
+	MOV BH, 0
+	MOV AH, 0xE
+	INT 0x10
+	RET
 
 Print:
 	PUSHA

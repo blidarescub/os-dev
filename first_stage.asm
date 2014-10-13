@@ -2,6 +2,7 @@
 [ORG 0x7C00]
 
 CALL Refresh_screen
+CALL Reset_cursorText
 MOV SI, LOADING
 CALL Print
 MOV SI, POINT
@@ -10,9 +11,7 @@ MOV SI, POINT
 CALL Print
 MOV SI, POINT
 CALL Print
-MOV SI, EMPTY_LINE
-CALL Print
-MOV SI, EMPTY_LINE
+CALL Reset_cursorBar
 CALL Loader_bar
 CALL Delay
 CALL Read_disk
@@ -56,7 +55,7 @@ Delay:
 
 Delay_char:
 	PUSHA
-	MOV BL, 0
+	MOV BL, 1h
 	MOV AH, 0
 	INT 0x1A
 	ADD BX, DX
@@ -80,7 +79,7 @@ Refresh_screen:
 
 Loader_bar:
 	PUSHA
-	MOV BL, 0x12
+	MOV BL, 0xA
 	MOV SI, BAR
 	start:
 		OR BL, BL
@@ -91,6 +90,27 @@ Loader_bar:
 exit_loader:
 	POPA
 	RET
+
+Reset_cursorText:
+	PUSHA
+	MOV AH, 0x02
+	MOV BH, 0
+	MOV DH, 0xA
+	MOV DL, 0x23
+	INT 0x10
+	POPA
+	RET
+
+Reset_cursorBar:
+	PUSHA
+	MOV AH, 0x02
+	MOV BH, 0
+	MOV DH, 0xE
+	MOV DL, 0x23
+	INT 0x10
+	POPA
+	RET
+
 
 Read_disk:
 	XOR AH, AH ; reset drive reading head
@@ -110,13 +130,11 @@ Read_disk:
     JMP 0x2000:0x0000   ; buffer
 
 LOADING:
-	db 'LOADING BOOTLOADER', 0
+	db 'LOADING', 0
 POINT:
 	db '.', 0
 BAR:
 	db 0x7C, 0
-EMPTY_LINE:
-    db 0dh, 0ah, 0
 
 times 510 -( $ - $$ ) db 0
 dw 0xaa55
