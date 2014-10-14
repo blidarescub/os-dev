@@ -188,6 +188,7 @@ read_exit_shell:
 	CALL PrintShell
     MOV SI, SHELL_PROMPT
 	CALL PrintShell
+	CALL Read_kb_buffer
 	CALL ReadShell
 	RET
 
@@ -204,6 +205,16 @@ NewLineShell:
 	MOV SI, SHELL_PROMPT
 	CALL PrintShell
 	JMP ReadShell
+
+Read_kb_buffer:
+	MOV BX, KB_BUFFER
+	MOV DX, BX
+	MOV byte [BX], 33
+	MOV AH, 0x0A
+	INT 0x21
+	MOV SI, [KB_BUFFER + 2]
+	CALL Print
+	RET 
 
 Reboot:
 	INT 19h
@@ -255,5 +266,9 @@ SHELL_PROMPT:
     db '#> ', 0
 EMPTY_LINE:
     db 0dh, 0ah, 0
+KB_BUFFER:
+    db  00h,00h       ; the working and actual lengths
+    times 32 db 0     ; string (adjust length to same as code above)
+    db  00h           ; the CR (ascii 13d)
 
 times 1024 -( $ - $$ ) db 0
