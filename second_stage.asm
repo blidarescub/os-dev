@@ -189,19 +189,65 @@ read_exit_shell:
     MOV SI, SHELL_PROMPT
 	CALL PrintShell
 	CALL ReadShell
+	CALL ReadShell
 	RET
 
 ReadShell:
     MOV AH,0x0
     INT 0x16
     CALL PrintCharShell
-    CMP AL, 0xD
+    CMP AL, 0x48 ;H
+    JE Check_h
+    CMP AL, 0x68 ;h
+    JE Check_h
+    CMP AL, 0x52 ;R
+    JE Check_r
+    CMP AL, 0x72 ;r
+    JE Check_r
+    CMP AL, 0x63 ;c
+    JE Check_c
+    CMP AL, 0x42 ;C
+    JE Check_c
+    CMP AL, 0xD  ;CRLF
     JE NewLineShell
     JMP ReadShell
 NewLineShell:
 	MOV SI, EMPTY_LINE
 	CALL PrintShell
 	MOV SI, SHELL_PROMPT
+	CALL PrintShell
+	JMP ReadShell
+Check_h:
+	MOV AH,0x0
+    INT 0x16
+    CALL PrintCharShell
+    CMP AL, 0xD
+    JE h_print_help
+    JMP ReadShell
+h_print_help:
+	MOV SI, HELP
+	CALL PrintShell
+	MOV SI, SHELL_PROMPT
+	CALL PrintShell
+	JMP ReadShell
+Check_r:
+	MOV AH,0x0
+    INT 0x16
+    CALL PrintCharShell
+    CMP AL, 0xD
+    JE read_exit
+    JMP ReadShell
+Check_c:
+	MOV AH,0x0
+    INT 0x16
+    CALL PrintCharShell
+    CMP AL, 0xD
+    JE c_clear_screen
+    JMP ReadShell
+c_clear_screen:
+	CALL Clear_screen
+    CALL Reset_cursor
+    MOV SI, SHELL_PROMPT
 	CALL PrintShell
 	JMP ReadShell
 
@@ -255,5 +301,8 @@ SHELL_PROMPT:
     db '#> ', 0
 EMPTY_LINE:
     db 0dh, 0ah, 0
+HELP:
+	db 0dh, 0ah, 0dh, 0ah, "    h -- show this help summary", 0dh, 0ah, "    c -- clear screen", 0dh, 0ah, "    r -- reboot", 0dh, 0ah, 0dh, 0ah, 0
+
 
 times 1024 -( $ - $$ ) db 0
