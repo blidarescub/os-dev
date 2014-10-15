@@ -129,6 +129,36 @@ PrintCharShell:
 	INT 0x10
 	RET
 
+PrintCharWarning:
+	CALL Delay_char
+	MOV BL, 0xC
+	MOV BH, 0
+	MOV AH, 0xE
+	INT 0x10
+	RET
+
+PrintCharWarningShell:
+	MOV BL, 0xC
+	MOV BH, 0
+	MOV AH, 0xE
+	INT 0x10
+	RET
+
+PrintCharInfo:
+	CALL Delay_char
+	MOV BL, 0xB
+	MOV BH, 0
+	MOV AH, 0xE
+	INT 0x10
+	RET
+
+PrintCharInfoShell:
+	MOV BL, 0xB
+	MOV BH, 0
+	MOV AH, 0xE
+	INT 0x10
+	RET
+
 Print:
 	PUSHA
 	next_character:
@@ -155,6 +185,58 @@ PrintShell:
 	POPA
 	RET
 
+PrintWarning:
+	PUSHA
+	next_characterWarning:
+		MOV AL, [SI]
+		INC SI
+		OR AL, AL
+		JZ exit_printWarning
+		CALL PrintCharWarning
+		JMP next_characterWarning
+	exit_printWarning:
+	POPA
+	RET
+
+PrintWarningShell:
+	PUSHA
+	next_characterWarningShell:
+		MOV AL, [SI]
+		INC SI
+		OR AL, AL
+		JZ exit_printWarningShell
+		CALL PrintCharWarningShell
+		JMP next_characterWarningShell
+	exit_printWarningShell:
+	POPA
+	RET
+
+PrintInfo:
+	PUSHA
+	next_characterInfo:
+		MOV AL, [SI]
+		INC SI
+		OR AL, AL
+		JZ exit_printInfo
+		CALL PrintCharInfo
+		JMP next_characterInfo
+	exit_printInfo:
+	POPA
+	RET
+
+PrintInfoShell:
+	PUSHA
+	next_characterInfoShell:
+		MOV AL, [SI]
+		INC SI
+		OR AL, AL
+		JZ exit_printInfoShell
+		CALL PrintCharInfoShell
+		JMP next_characterInfoShell
+	exit_printInfoShell:
+	POPA
+	RET
+
 Read:
     MOV AH,0x0
     INT 0x16
@@ -173,7 +255,7 @@ read_exit:
     MOV SI, EMPTY_LINE
 	CALL PrintShell
     MOV SI, SEARA_BUNA
-	CALL Print
+	CALL PrintWarning
 	CALL Delay
 	JMP Reboot
 	RET

@@ -120,7 +120,7 @@ Read_disk:
     MOV BX, 0x0000  ; offset
 
     MOV AH, 0x02  ; read function
-    MOV AL, 0x02  ; sectors 
+    MOV AL, 0x03  ; sectors
     MOV CH, 0x00  ; cylinder
     MOV CL, 0x02  ; sector
     MOV DH, 0x00  ; head
