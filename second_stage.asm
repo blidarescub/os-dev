@@ -129,6 +129,36 @@ PrintCharShell:
 	INT 0x10
 	RET
 
+PrintCharWarning:
+	CALL Delay_char
+	MOV BL, 0xC
+	MOV BH, 0
+	MOV AH, 0xE
+	INT 0x10
+	RET
+
+PrintCharWarningShell:
+	MOV BL, 0xC
+	MOV BH, 0
+	MOV AH, 0xE
+	INT 0x10
+	RET
+
+PrintCharInfo:
+	CALL Delay_char
+	MOV BL, 0xB
+	MOV BH, 0
+	MOV AH, 0xE
+	INT 0x10
+	RET
+
+PrintCharInfoShell:
+	MOV BL, 0xB
+	MOV BH, 0
+	MOV AH, 0xE
+	INT 0x10
+	RET
+
 Print:
 	PUSHA
 	next_character:
@@ -155,6 +185,58 @@ PrintShell:
 	POPA
 	RET
 
+PrintWarning:
+	PUSHA
+	next_characterWarning:
+		MOV AL, [SI]
+		INC SI
+		OR AL, AL
+		JZ exit_printWarning
+		CALL PrintCharWarning
+		JMP next_characterWarning
+	exit_printWarning:
+	POPA
+	RET
+
+PrintWarningShell:
+	PUSHA
+	next_characterWarningShell:
+		MOV AL, [SI]
+		INC SI
+		OR AL, AL
+		JZ exit_printWarningShell
+		CALL PrintCharWarningShell
+		JMP next_characterWarningShell
+	exit_printWarningShell:
+	POPA
+	RET
+
+PrintInfo:
+	PUSHA
+	next_characterInfo:
+		MOV AL, [SI]
+		INC SI
+		OR AL, AL
+		JZ exit_printInfo
+		CALL PrintCharInfo
+		JMP next_characterInfo
+	exit_printInfo:
+	POPA
+	RET
+
+PrintInfoShell:
+	PUSHA
+	next_characterInfoShell:
+		MOV AL, [SI]
+		INC SI
+		OR AL, AL
+		JZ exit_printInfoShell
+		CALL PrintCharInfoShell
+		JMP next_characterInfoShell
+	exit_printInfoShell:
+	POPA
+	RET
+
 Read:
     MOV AH,0x0
     INT 0x16
@@ -173,7 +255,7 @@ read_exit:
     MOV SI, EMPTY_LINE
 	CALL PrintShell
     MOV SI, SEARA_BUNA
-	CALL Print
+	CALL PrintWarning
 	CALL Delay
 	JMP Reboot
 	RET
@@ -240,7 +322,7 @@ t_print_time:
 	MOV SI, EMPTY_LINE
 	CALL PrintShell
 	MOV SI, TIME_FIELD
-	CALL PrintShell
+	CALL PrintInfoShell
 	MOV SI, EMPTY_LINE
 	CALL PrintShell
 	MOV SI, SHELL_PROMPT
@@ -262,7 +344,7 @@ d_print_date:
 	MOV SI, EMPTY_LINE
 	CALL PrintShell
 	MOV SI, DATE_FIELD
-	CALL PrintShell
+	CALL PrintInfoShell
 	MOV SI, EMPTY_LINE
 	CALL PrintShell
 	MOV SI, SHELL_PROMPT
@@ -277,7 +359,7 @@ Check_h:
     JMP ReadShell
 h_print_help:
 	MOV SI, HELP
-	CALL PrintShell
+	CALL PrintInfoShell
 	MOV SI, SHELL_PROMPT
 	CALL PrintShell
 	JMP ReadShell
@@ -353,11 +435,11 @@ Convert_month:
 	SHR BH,1
 	SHR BH,1
 	ADD BH,30H
-	MOV [DATE_FIELD],BH
+	MOV [DATE_FIELD + 3],BH
 	MOV BH,DH
 	AND BH,0FH
 	ADD BH,30H
-	MOV [DATE_FIELD + 1],BH
+	MOV [DATE_FIELD + 4],BH
 	RET
 Convert_day:
 	MOV BH,DL
@@ -370,7 +452,7 @@ Convert_day:
 	MOV BH,DL
 	AND BH,0FH
 	ADD BH,30H
-	MOV [DATE_FIELD +4],BH
+	MOV [DATE_FIELD + 1],BH
 	RET
 Convert_century:
 	MOV BH,CH
@@ -392,7 +474,7 @@ Convert_year:
 	SHR BH,1
 	SHR BH,1
 	ADD BH,30H
-	MOV [DATE_FIELD],BH
+	MOV [DATE_FIELD + 8],BH
 	MOV BH,CL
 	AND BH,0FH
 	ADD BH,30H
@@ -426,7 +508,7 @@ Convert_minutes:
 	SHR BH,1
 	SHR BH,1
 	ADD BH,30H
-	MOV [TIME_FIELD],BH
+	MOV [TIME_FIELD + 3],BH
 	MOV BH,CL
 	AND BH,0FH
 	ADD BH,30H
@@ -439,7 +521,7 @@ Convert_seconds:
 	SHR BH,1
 	SHR BH,1
 	ADD BH,30H
-	MOV [TIME_FIELD],BH
+	MOV [TIME_FIELD + 6],BH
 	MOV BH,DH
 	AND BH,0FH
 	ADD BH,30H
