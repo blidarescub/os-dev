@@ -1,6 +1,10 @@
 [BITS 16]
 [ORG 0x7C00]
 
+MOV AX, CS ; initialize
+MOV DS, AX ; segments
+MOV ES, AX ; correctly, too, even if I am using ORG
+
 CALL Refresh_screen
 CALL Reset_cursorText
 MOV SI, LOADING
@@ -120,7 +124,7 @@ Read_disk:
     MOV BX, 0x0000  ; offset
 
     MOV AH, 0x02  ; read function
-    MOV AL, 0x03  ; sectors
+    MOV AL, 0x03  ; sectors 
     MOV CH, 0x00  ; cylinder
     MOV CL, 0x02  ; sector
     MOV DH, 0x00  ; head
