@@ -1,6 +1,7 @@
 [BITS 16]
 
-;TODO: implement APM shutdown http://wiki.osdev.org/APM
+;TODO: - implement APM shutdown http://wiki.osdev.org/APM
+;      - encapsulation for functions
 
 MOV AX, CS ; initialize
 MOV DS, AX ; segments
@@ -144,6 +145,7 @@ FreeDraw:
 		CALL Reset_cursor
 		MOV SI, SHELL_PROMPT
 		CALL PrintShell
+		XOR CL, CL
 		JMP ReadShell
 
 Note_pad_init:
@@ -168,6 +170,7 @@ exit_note_pad:
 	CALL Reset_cursor
 	MOV SI, SHELL_PROMPT
 	CALL PrintShell
+	XOR CL, CL
 	JMP ReadShell
 
 Clear_screen:
@@ -336,7 +339,6 @@ read_exit:
 	CALL PrintWarning
 	CALL Delay
 	JMP Reboot
-	RET
 read_exit_shell:
 	MOV BL, 0xB
 	MOV BH, 0
@@ -344,12 +346,7 @@ read_exit_shell:
 	INT 0x10
 	MOV SI, EMPTY_LINE
 	CALL PrintShell
-	MOV SI, EMPTY_LINE
-	CALL PrintShell
-	MOV SI, SHELL_PROMPT
-	CALL PrintShell
-	CALL ReadShell
-	RET
+	JMP NewLineShell
 
 ReadShell:
 	MOV AH, 0x0
@@ -361,24 +358,27 @@ ReadShell:
 	CALL PrintCharShell
 	MOV CL, AL
 	JMP ReadShell
-	Run_command:
-		OR CL, 01100000b
-		CMP CL, 0x6E ;n
-		JE Note_pad_init
-		CMP CL, 0x67 ;g
-		JE FreeDraw
-		CMP CL, 0x74 ;t
-		JE t_print_time
-		CMP CL, 0x64 ;d
-		JE d_print_date
-		CMP CL, 0x68 ;h
-		JE h_print_help
-		CMP CL, 0x72 ;r
-		JE read_exit
-		CMP CL, 0x63 ;c
-		JE c_clear_screen
-		JMP Bad_command
+Run_command:
+	CMP CL, 0
+	JE NewLineShell
+	OR CL, 01100000b
+	CMP CL, 0x6E ;n
+	JE Note_pad_init
+	CMP CL, 0x67 ;g
+	JE FreeDraw
+	CMP CL, 0x74 ;t
+	JE t_print_time
+	CMP CL, 0x64 ;d
+	JE d_print_date
+	CMP CL, 0x68 ;h
+	JE h_print_help
+	CMP CL, 0x72 ;r
+	JE read_exit
+	CMP CL, 0x63 ;c
+	JE c_clear_screen
+	JMP Bad_command
 Delete_char:
+	CALL Check_cursor_position
 	CALL PrintCharShell
 	MOV AL, ' '
 	CALL PrintCharShell
@@ -397,6 +397,7 @@ NewLineShell:
 	CALL PrintShell
 	MOV SI, SHELL_PROMPT
 	CALL PrintShell
+	XOR CL, CL
 	JMP ReadShell
 t_print_time:
 	CALL Time
@@ -411,6 +412,7 @@ t_print_time:
 	CALL PrintShell
 	MOV SI, SHELL_PROMPT
 	CALL PrintShell
+	XOR CL, CL
 	JMP ReadShell
 d_print_date:
 	CALL Date
@@ -426,18 +428,38 @@ d_print_date:
 	CALL PrintShell
 	MOV SI, SHELL_PROMPT
 	CALL PrintShell
+	XOR CL, CL
 	JMP ReadShell
 h_print_help:
 	MOV SI, HELP
 	CALL PrintInfoShell
 	MOV SI, SHELL_PROMPT
 	CALL PrintShell
+	XOR CL, CL
 	JMP ReadShell
 c_clear_screen:
 	CALL Clear_screen
 	CALL Reset_cursor
 	MOV SI, SHELL_PROMPT
 	CALL PrintShell
+	XOR CL, CL
+	JMP ReadShell
+
+Check_cursor_position:
+	PUSHA
+	MOV AH, 0x3
+	MOV BH, 0
+	INT 0x10
+	CMP DL, 3
+	JE Fix_cursor_position
+	POPA
+	RET
+Fix_cursor_position:
+	MOV AH, 0x2
+	MOV DL, 3
+	INT 0x10
+	POPA
+	XOR CL, CL
 	JMP ReadShell
 
 Reboot:
@@ -474,7 +496,6 @@ Delay_char:
 	tloop4:
 		POPA
 		RET
-
 
 Date:
 	MOV AH, 0x04
