@@ -41,7 +41,7 @@ Draw_rect:
 	MOV DX, 0x12C
 	MOV AL, 0xE
 	Draw1:
-		;CALL Delay_char
+		CALL Delay_char
 		INT 0x10
 		DEC BL
 		DEC CX
@@ -55,7 +55,7 @@ Draw_rect:
 		MOV DX, 0x12C
 		JMP Draw2
 	Draw2:
-		;CALL Delay_char
+		CALL Delay_char
 		INT 0x10
 		DEC BL
 		INC CX
@@ -69,7 +69,7 @@ Draw_rect:
 		MOV DX, 0xFA
 		JMP Draw3
 	Draw3:
-		;CALL Delay_char
+		CALL Delay_char
 		INT 0x10
 		DEC BL
 		INC CX
@@ -83,7 +83,7 @@ Draw_rect:
 		MOV DX, 0xFA
 		JMP Draw4
 	Draw4:
-		;CALL Delay_char
+		CALL Delay_char
 		INT 0x10
 		DEC BL
 		DEC CX
@@ -603,12 +603,12 @@ EMPTY_LINE:
 EMPTY_CHAR:
 	db ' ',0
 HELP:
-	db 0dh, 0ah, 0dh, 0ah, "    h -- show this help summary", 0dh, 0ah, "    g -- load PaintBleed", 0dh, 0ah, "    n -- load NoteBleed", 0dh, 0ah, "    t -- print time", 0dh, 0ah, "    d -- print date", 0dh, 0ah, "    c -- clear screen", 0dh, 0ah, "    r -- reboot", 0dh, 0ah, 0dh, 0ah, 0
+	db 0dh, 0ah, 0dh, 0ah, "    h -- show this help summary", 0dh, 0ah, "    g -- load PaintBleed (press c to exit)", 0dh, 0ah, "    n -- load NoteBleed (exit with ESC)", 0dh, 0ah, "    t -- print time", 0dh, 0ah, "    d -- print date", 0dh, 0ah, "    c -- clear screen", 0dh, 0ah, "    r -- reboot", 0dh, 0ah, 0dh, 0ah, 0
 DATE_FIELD:
 	db '00/00/0000', 0
 TIME_FIELD:
 	db '00:00:00', 0
 ERR_COMMAND:
-	db 'Invalid command!', 0
+	db 'Invalid command! Type h for help', 0
 
 times 2048 -( $ - $$ ) db 0
