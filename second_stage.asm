@@ -1,7 +1,7 @@
 [BITS 16]
 
-;TODO: - implement APM shutdown http://wiki.osdev.org/APM
-;      - encapsulation for functions
+; TODO: - implement APM shutdown http://wiki.osdev.org/APM
+;       - encapsulation for functions
 
 MOV AX, CS ; initialize
 MOV DS, AX ; segments
@@ -14,7 +14,12 @@ CALL Clear_screen
 CALL Reset_cursor
 MOV SI, INTRO
 CALL PrintShell
-MOV SI, EMPTY_LINE
+MOV SI, EMPTY_CHAR
+CALL PrintShell
+CALL Date
+CALL Convert_century_os
+CALL Convert_year_os
+MOV SI, DATE_FIELD_OS
 CALL PrintShell
 MOV SI, EMPTY_LINE
 CALL PrintShell
@@ -338,6 +343,15 @@ read_exit:
 	MOV SI, SEARA_BUNA
 	CALL PrintWarning
 	CALL Delay
+	MOV SI, POINT
+	CALL PrintWarning
+	CALL Delay
+	MOV SI, POINT
+	CALL PrintWarning
+	CALL Delay
+	MOV SI, POINT
+	CALL PrintWarning
+	CALL Delay
 	JMP Reboot
 read_exit_shell:
 	MOV BL, 0xB
@@ -361,6 +375,9 @@ ReadShell:
 Run_command:
 	CMP CL, 0
 	JE NewLineShell
+	CMP CL, 0x3F ;?
+	JE h_print_help
+	; Make any character lowercase by flipping bits 6 and 7 to 1
 	OR CL, 01100000b
 	CMP CL, 0x6E ;n
 	JE Note_pad_init
@@ -501,6 +518,8 @@ Date:
 	MOV AH, 0x04
 	INT 0x1A
 	RET
+	;leaves CF unchanged if successful
+	; TODO: CF should be cleared before calling this function
 	;CH - CENTURY
 	;CL - YEAR
 	;DH - MONTH
@@ -545,11 +564,37 @@ Convert_year:
 	ADD BH, 30H
 	MOV [DATE_FIELD + 9], BH
 	RET
+Convert_century_os:
+	PUSHA
+	MOV BH, CH
+	SHR BH, 4
+	ADD BH, 30H
+	MOV [DATE_FIELD_OS], BH
+	MOV BH, CH
+	AND BH, 0FH
+	ADD BH, 30H
+	MOV [DATE_FIELD_OS + 1], BH
+	POPA
+	RET
+Convert_year_os:
+	PUSHA
+	MOV BH, CL
+	SHR BH, 4
+	ADD BH, 30H
+	MOV [DATE_FIELD_OS + 2], BH
+	MOV BH, CL
+	AND BH, 0FH
+	ADD BH, 30H
+	MOV [DATE_FIELD_OS + 3], BH
+	POPA
+	RET
 
 Time:
 	MOV AH, 02H
 	INT 1AH
 	RET
+	;leaves CF unchanged if successful
+	; TODO: CF should be cleared before calling this function
 	;CH - HOURS
 	;CL - MINUTES
 	;DH - SECONDS
@@ -587,27 +632,33 @@ Convert_seconds:
 
 
 INTRO:
-    db 0x40, "BLidOS 2014", 0
+    db 0x40, "BLidOS", 0
 BUNA_SEARA:
     db "Hello, World!", 0
 OPTIONS:
-	db "(R) Reboot", 0dh, 0ah,"(I) Interactive shell", 0dh, 0ah, 0
+	db "(R) Reboot", 0dh, 0ah,"(I) Interactive shell / Recovery", 0dh, 0ah,"(B) Boot to OS", 0
 PLEASE:
 	db "Please choose an option: ", 0
 SEARA_BUNA:
-    db 'Goodbye, World!', 0
+    db 'Shutting down', 0
 SHELL_PROMPT:
     db '#> ', 0
 EMPTY_LINE:
     db 0dh, 0ah, 0
 EMPTY_CHAR:
 	db ' ',0
+POINT:
+	db '.', 0
+BAR:
+	db 0x7C, 0
 HELP:
-	db 0dh, 0ah, 0dh, 0ah, "    h -- show this help summary", 0dh, 0ah, "    g -- load PaintBleed (press c to exit)", 0dh, 0ah, "    n -- load NoteBleed (exit with ESC)", 0dh, 0ah, "    t -- print time", 0dh, 0ah, "    d -- print date", 0dh, 0ah, "    c -- clear screen", 0dh, 0ah, "    r -- reboot", 0dh, 0ah, 0dh, 0ah, 0
+	db 0dh, 0ah, 0dh, 0ah, "    h -- show this help summary", 0dh, 0ah, "    g -- load PaintBleed (press c to exit)", 0dh, 0ah, "    n -- load bVim (press ESC to exit)", 0dh, 0ah, "    t -- print time", 0dh, 0ah, "    d -- print date", 0dh, 0ah, "    c -- clear screen", 0dh, 0ah, "    r -- reboot", 0dh, 0ah, 0dh, 0ah, 0
 DATE_FIELD:
 	db '00/00/0000', 0
 TIME_FIELD:
 	db '00:00:00', 0
+DATE_FIELD_OS:
+	db '0000', 0
 ERR_COMMAND:
 	db 'Invalid command! Type h for help', 0
 
